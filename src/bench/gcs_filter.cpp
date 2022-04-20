@@ -23,7 +23,7 @@ static void GCSBlockFilterGetHash(benchmark::Bench& bench)
     auto elements = GenerateGCSTestElements();
 
     GCSFilter filter({0, 0, BASIC_FILTER_P, BASIC_FILTER_M}, elements);
-    BlockFilter block_filter(BlockFilterType::BASIC, {}, filter.GetEncoded(), /*filter_checked=*/false);
+    BlockFilter block_filter(BlockFilterType::BASIC, {}, filter.GetEncoded());
 
     bench.unit("elem").run([&] {
         block_filter.GetHash();
@@ -50,7 +50,7 @@ static void GCSFilterDecode(benchmark::Bench& bench)
     auto encoded = filter.GetEncoded();
 
     bench.unit("elem").run([&] {
-        GCSFilter filter({0, 0, BASIC_FILTER_P, BASIC_FILTER_M}, encoded, /*filter_checked=*/false);
+        GCSFilter filter({0, 0, BASIC_FILTER_P, BASIC_FILTER_M}, encoded);
     });
 }
 
@@ -62,7 +62,7 @@ static void GCSFilterDecodeChecked(benchmark::Bench& bench)
     auto encoded = filter.GetEncoded();
 
     bench.unit("elem").run([&] {
-        GCSFilter filter({0, 0, BASIC_FILTER_P, BASIC_FILTER_M}, encoded, /*filter_checked=*/true);
+        GCSFilter filter({0, 0, BASIC_FILTER_P, BASIC_FILTER_M}, encoded);
     });
 }
 
