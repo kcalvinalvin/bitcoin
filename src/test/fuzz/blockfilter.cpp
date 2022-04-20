@@ -15,22 +15,32 @@
 FUZZ_TARGET(blockfilter)
 {
     FuzzedDataProvider fuzzed_data_provider(buffer.data(), buffer.size());
-    const std::optional<BlockFilter> block_filter = ConsumeDeserializable<BlockFilter>(fuzzed_data_provider);
-    if (!block_filter) {
+    const std::optional<uint256> u256 = ConsumeDeserializable<uint256>(fuzzed_data_provider);
+    if (!u256) {
         return;
     }
+
+    GCSFilter::ElementSet elements;
+    size_t num_elements = fuzzed_data_provider.ConsumeIntegralInRange<unsigned int>(1, 100000);
+    for (size_t i=0; i < num_elements; i++) {
+        std::vector<unsigned char> element = ConsumeRandomLengthIntegralVector<unsigned char>(fuzzed_data_provider, 32);
+        elements.insert(element);
+    }
+
+    GCSFilter filter({u256->GetUint64(0), u256->GetUint64(1), BASIC_FILTER_P, BASIC_FILTER_M}, elements);
+    BlockFilter block_filter(BlockFilterType::BASIC, u256.value(), filter.GetEncoded());
     {
-        (void)block_filter->ComputeHeader(ConsumeUInt256(fuzzed_data_provider));
-        (void)block_filter->GetBlockHash();
-        (void)block_filter->GetEncodedFilter();
-        (void)block_filter->GetHash();
+        (void)block_filter.ComputeHeader(ConsumeUInt256(fuzzed_data_provider));
+        (void)block_filter.GetBlockHash();
+        (void)block_filter.GetEncodedFilter();
+        (void)block_filter.GetHash();
     }
     {
-        const BlockFilterType block_filter_type = block_filter->GetFilterType();
+        const BlockFilterType block_filter_type = block_filter.GetFilterType();
         (void)BlockFilterTypeName(block_filter_type);
     }
     {
-        const GCSFilter gcs_filter = block_filter->GetFilter();
+        const GCSFilter gcs_filter = block_filter.GetFilter();
         (void)gcs_filter.GetN();
         (void)gcs_filter.GetParams();
         (void)gcs_filter.GetEncoded();
